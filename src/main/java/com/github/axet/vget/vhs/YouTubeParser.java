@@ -252,7 +252,7 @@ public class YouTubeParser extends VGetParser {
                 final String decodeFuncHelperName = decodeFunctionHelperNameMatch.group(1);
 
                 Pattern decodeFunctionHelper = Pattern.compile(
-                        String.format("(var %s=\\{[a-zA-Z]*:function\\(.*?\\};)", decodeFuncHelperName),
+                        String.format("(var %s=\\{[a-zA-Z0-9]*:function\\(.*?\\};)", decodeFuncHelperName),
                         Pattern.DOTALL);
                 Matcher decodeFunctionHelperMatch = decodeFunctionHelper.matcher(playerJS);
                 if (decodeFunctionHelperMatch.find()) {
