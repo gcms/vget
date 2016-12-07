@@ -50,3 +50,5 @@ YouTube change and may change protocol in the future. Here is a several librarie
     * https://sourceforge.net/p/ytd2/code/HEAD/tree/trunk/ytd2/src/main/java/zsk/YTDownloadThread.java
   * https://github.com/pculture/miro
     * https://github.com/pculture/miro/blob/master/tv/lib/flashscraper.py
+  * https://github.com/soimort/you-get
+    * https://github.com/soimort/you-get/blob/develop/src/you_get/extractors/youtube.py
