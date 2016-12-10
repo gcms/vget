@@ -186,9 +186,6 @@ public class VimeoParser extends VGetParser {
 
             String icon = data.video.thumbs.values().iterator().next();
 
-            if (data.video.title == null)
-                throw new DownloadError("bad title");
-
             info.setTitle(data.video.title);
 
             if (data.request.files.h264.hd != null)
