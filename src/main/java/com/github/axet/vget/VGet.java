@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.axet.threads.LimitThreadPool;
+import com.github.axet.vget.ex.DownloadFatal;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
 import com.github.axet.vget.info.VideoInfo;
@@ -33,6 +34,8 @@ import com.github.axet.wget.info.ex.DownloadMultipartError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 
 public class VGet {
+    public static int THREAD_COUNT = 4;
+
     protected VideoInfo info;
     // target directory, where we have to download. automatically name files
     // based on video title and conflict files.
@@ -168,19 +171,21 @@ public class VGet {
 
     public void retry(VGetParser user, AtomicBoolean stop, Runnable notify, Throwable e) {
         boolean retracted = false;
+        int retry = 0;
 
         while (!retracted) {
+            retry++; // first retry
             for (int i = RetryWrap.RETRY_DELAY; i >= 0; i--) {
                 if (stop.get())
                     throw new DownloadInterruptedError("stop");
                 if (Thread.currentThread().isInterrupted())
                     throw new DownloadInterruptedError("interrupted");
 
-                info.setRetrying(i, e);
+                info.setRetrying(retry, i, e);
                 notify.run();
 
                 try {
-                    Thread.sleep(RetryWrap.RETRY_SLEEP);
+                    Thread.sleep(1000);
                 } catch (InterruptedException ee) {
                     throw new DownloadInterruptedError(ee);
                 }
@@ -492,7 +497,7 @@ public class VGet {
                 try {
                     final List<VideoFileInfo> dinfoList = info.getInfo();
 
-                    final LimitThreadPool l = new LimitThreadPool(4);
+                    final LimitThreadPool l = new LimitThreadPool(THREAD_COUNT);
 
                     final Thread main = Thread.currentThread();
 
@@ -570,7 +575,7 @@ public class VGet {
                                     notify.run();
                                     break;
                                 case RETRYING:
-                                    info.setRetrying(dinfo.getDelay(), dinfo.getException());
+                                    info.setRetrying(dinfo.getRetry(), dinfo.getDelay(), dinfo.getException());
                                     notify.run();
                                     break;
                                 default:
@@ -590,6 +595,10 @@ public class VGet {
                                     } catch (DownloadInterruptedError e) {
                                         // we need to handle this task error to l.waitUntilTermination()
                                         main.interrupt();
+                                    } catch (RuntimeException e) {
+                                        // in case if download stopped by fatal error
+                                        main.interrupt();
+                                        dinfo.setState(com.github.axet.wget.info.URLInfo.States.ERROR, e);
                                     }
                                 }
                             });
@@ -623,6 +632,13 @@ public class VGet {
                                 // we got interrupted twice from main.interrupt()
                             }
                         }
+                        // do we have any error?
+                        for (final VideoFileInfo dinfo : dinfoList) {
+                            if (dinfo.getException() != null) {
+                                throw new DownloadFatal(dinfoList); // yes some kind of fatal error on one or more files
+                            }
+                        }
+                        // nope, download was interrupted manually
                         throw new DownloadInterruptedError(e);
                     }
 

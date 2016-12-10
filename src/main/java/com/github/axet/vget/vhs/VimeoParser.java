@@ -26,7 +26,7 @@ import com.google.gson.Gson;
 
 public class VimeoParser extends VGetParser {
 
-    static public class VideoDownload {
+    public static class VideoDownload {
         public VimeoQuality vq;
         public URL url;
 
@@ -36,8 +36,7 @@ public class VimeoParser extends VGetParser {
         }
     }
 
-    static public class VideoContentFirst implements Comparator<VideoDownload> {
-
+    public static class VideoContentFirst implements Comparator<VideoDownload> {
         @Override
         public int compare(VideoDownload o1, VideoDownload o2) {
             Integer i1 = o1.vq.ordinal();
@@ -46,7 +45,6 @@ public class VimeoParser extends VGetParser {
 
             return ic;
         }
-
     }
 
     public static class VimeoData {
@@ -133,8 +131,8 @@ public class VimeoParser extends VGetParser {
 
             String html = WGet.getHtml(url, new HtmlLoader() {
                 @Override
-                public void notifyRetry(int delay, Throwable e) {
-                    info.setRetrying(delay, e);
+                public void notifyRetry(int retry, int delay, Throwable e) {
+                    info.setRetrying(retry, delay, e);
                     notify.run();
                 }
 
@@ -165,8 +163,8 @@ public class VimeoParser extends VGetParser {
 
             String htmlConfig = WGet.getHtml(new URL(config), new HtmlLoader() {
                 @Override
-                public void notifyRetry(int delay, Throwable e) {
-                    info.setRetrying(delay, e);
+                public void notifyRetry(int retry, int delay, Throwable e) {
+                    info.setRetrying(retry, delay, e);
                     notify.run();
                 }
 
@@ -230,5 +228,4 @@ public class VimeoParser extends VGetParser {
     public VideoInfo info(URL web) {
         return new VimeoInfo(web);
     }
-
 }

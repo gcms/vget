@@ -83,28 +83,26 @@ public class YouTubeParser extends VGetParser {
 
     }
 
-    final static String UTF8 = "UTF-8";
-
-    static class DecryptSignature {
-        String sig;
+    public static class DecryptSignature {
+        public String sig;
 
         public DecryptSignature(String signature) {
             this.sig = signature;
         }
 
-        String s(int b, int e) {
+        public String s(int b, int e) {
             return sig.substring(b, e);
         }
 
-        String s(int b) {
+        public String s(int b) {
             return sig.substring(b, b + 1);
         }
 
-        String se(int b) {
+        public String se(int b) {
             return s(b, sig.length());
         }
 
-        String s(int b, int e, int step) {
+        public String s(int b, int e, int step) {
             String str = "";
 
             while (b != e) {
@@ -115,7 +113,7 @@ public class YouTubeParser extends VGetParser {
         }
 
         // https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/youtube.py
-        String decrypt() {
+        public String decrypt() {
             switch (sig.length()) {
             case 93:
                 return s(86, 29, -1) + s(88) + s(28, 5, -1);
@@ -157,10 +155,10 @@ public class YouTubeParser extends VGetParser {
     }
 
     // thanks to @github.com/chberger
-    static class DecryptSignatureHtml5 {
-        String sig;
-        URI playerURI;
-        static ConcurrentMap<String, String> playerCache = new ConcurrentHashMap<String, String>();
+    public static class DecryptSignatureHtml5 {
+        public String sig;
+        public URI playerURI;
+        public static ConcurrentMap<String, String> playerCache = new ConcurrentHashMap<String, String>();
 
         public DecryptSignatureHtml5(String signatur, URI playerURI) {
             this.sig = signatur;
@@ -172,14 +170,14 @@ public class YouTubeParser extends VGetParser {
          * 
          * @return player.js file
          */
-        private String getHtml5PlayerScript(final AtomicBoolean stop, final Runnable notify) {
+        public String getHtml5PlayerScript(final AtomicBoolean stop, final Runnable notify) {
             String url = playerCache.get(playerURI.toString());
 
             if (url == null) {
                 try {
                     String result = WGet.getHtml(playerURI.toURL(), new WGet.HtmlLoader() {
                         @Override
-                        public void notifyRetry(int delay, Throwable e) {
+                        public void notifyRetry(int retry, int delay, Throwable e) {
                             notify.run();
                         }
 
@@ -212,7 +210,7 @@ public class YouTubeParser extends VGetParser {
          *            corresponding javascript html5 player file
          * @return name of decode-function or null
          */
-        private String getMainDecodeFunctionName(String playerJS) {
+        public String getMainDecodeFunctionName(String playerJS) {
             Pattern decodeFunctionName = Pattern.compile("\\.sig\\|\\|([a-zA-Z0-9$]+)\\(");
             Matcher decodeFunctionNameMatch = decodeFunctionName.matcher(playerJS);
             if (decodeFunctionNameMatch.find()) {
@@ -231,12 +229,13 @@ public class YouTubeParser extends VGetParser {
          *            the main decode function name
          * @return returns only those functions which are relevant for the signature decoding
          */
-        private String extractDecodeFunctions(String playerJS, String functionName) {
+        public String extractDecodeFunctions(String playerJS, String functionName) {
             StringBuilder decodeScript = new StringBuilder();
             Pattern decodeFunction = Pattern
                     // this will probably change from version to version so
                     // changes have to be done here
-                    .compile(String.format("(%s=function\\([a-zA-Z0-9$]+\\)\\{.*?\\})[,;]", functionName), Pattern.DOTALL);
+                    .compile(String.format("(%s=function\\([a-zA-Z0-9$]+\\)\\{.*?\\})[,;]", functionName),
+                            Pattern.DOTALL);
             Matcher decodeFunctionMatch = decodeFunction.matcher(playerJS);
             if (decodeFunctionMatch.find()) {
                 decodeScript.append(decodeFunctionMatch.group(1)).append(';');
@@ -270,7 +269,7 @@ public class YouTubeParser extends VGetParser {
         /**
          * Decodes the youtube video signature using the decode functions provided in the html5player script.
          */
-        String decrypt(AtomicBoolean stop, Runnable notify) {
+        public String decrypt(AtomicBoolean stop, Runnable notify) {
             ScriptEngineManager manager = new ScriptEngineManager();
             // use a js script engine
             ScriptEngine engine = manager.getEngineByName("JavaScript");
@@ -383,13 +382,13 @@ public class YouTubeParser extends VGetParser {
      * @param notify
      * @throws Exception
      */
-    void streamCapture(List<VideoDownload> sNextVideoURL, final YouTubeInfo info, final AtomicBoolean stop,
+    public void streamCapture(List<VideoDownload> sNextVideoURL, final YouTubeInfo info, final AtomicBoolean stop,
             final Runnable notify) throws Exception {
         String html;
         html = WGet.getHtml(info.getWeb(), new WGet.HtmlLoader() {
             @Override
-            public void notifyRetry(int delay, Throwable e) {
-                info.setRetrying(delay, e);
+            public void notifyRetry(int retry, int delay, Throwable e) {
+                info.setRetrying(retry, delay, e);
                 notify.run();
             }
 
@@ -416,7 +415,7 @@ public class YouTubeParser extends VGetParser {
      *            download source url
      * @throws MalformedURLException
      */
-    void filter(List<VideoDownload> sNextVideoURL, String itag, URL url) {
+    public void filter(List<VideoDownload> sNextVideoURL, String itag, URL url) {
         Integer i = Integer.decode(itag);
         StreamInfo vd = itagMap.get(i);
 
@@ -425,7 +424,7 @@ public class YouTubeParser extends VGetParser {
 
     // http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs
 
-    static final Map<Integer, StreamInfo> itagMap = new HashMap<Integer, StreamInfo>() {
+    public static final Map<Integer, StreamInfo> itagMap = new HashMap<Integer, StreamInfo>() {
         private static final long serialVersionUID = -6925194111122038477L;
 
         {
@@ -533,7 +532,7 @@ public class YouTubeParser extends VGetParser {
      * @param notify
      * @throws Exception
      */
-    void extractEmbedded(List<VideoDownload> sNextVideoURL, final YouTubeInfo info, final AtomicBoolean stop,
+    public void extractEmbedded(List<VideoDownload> sNextVideoURL, final YouTubeInfo info, final AtomicBoolean stop,
             final Runnable notify) throws Exception {
         String id = extractId(info.getWeb());
         if (id == null) {
@@ -548,8 +547,8 @@ public class YouTubeParser extends VGetParser {
 
         String qs = WGet.getHtml(url, new WGet.HtmlLoader() {
             @Override
-            public void notifyRetry(int delay, Throwable e) {
-                info.setRetrying(delay, e);
+            public void notifyRetry(int retry, int delay, Throwable e) {
+                info.setRetrying(retry, delay, e);
                 notify.run();
             }
 
@@ -569,7 +568,7 @@ public class YouTubeParser extends VGetParser {
         Map<String, String> map = getQueryMap(qs);
 
         if (map.get("status").equals("fail")) {
-            String r = URLDecoder.decode(map.get("reason"), UTF8);
+            String r = URLDecoder.decode(map.get("reason"), WGet.UTF8);
             if (map.get("errorcode").equals("150"))
                 throw new EmbeddingDisabled("error code 150");
             if (map.get("errorcode").equals("100"))
@@ -579,22 +578,22 @@ public class YouTubeParser extends VGetParser {
             // throw new PrivateVideoException(r);
         }
 
-        info.setTitle(URLDecoder.decode(map.get("title"), UTF8));
+        info.setTitle(URLDecoder.decode(map.get("title"), WGet.UTF8));
 
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), UTF8);
         // String[] fmts = fmt_list.split(",");
 
-        String url_encoded_fmt_stream_map = URLDecoder.decode(map.get("url_encoded_fmt_stream_map"), UTF8);
+        String url_encoded_fmt_stream_map = URLDecoder.decode(map.get("url_encoded_fmt_stream_map"), WGet.UTF8);
 
         extractUrlEncodedVideos(sNextVideoURL, url_encoded_fmt_stream_map, info, stop, notify);
 
         // 'iurlmaxresæ or 'iurlsd' or 'thumbnail_url'
         String icon = map.get("thumbnail_url");
-        icon = URLDecoder.decode(icon, UTF8);
+        icon = URLDecoder.decode(icon, WGet.UTF8);
         info.setIcon(new URL(icon));
     }
 
-    void extractIcon(VideoInfo info, String html) {
+    public void extractIcon(VideoInfo info, String html) {
         try {
             Pattern title = Pattern.compile("itemprop=\"thumbnailUrl\" href=\"(.*)\"");
             Matcher titleMatch = title.matcher(html);
@@ -614,7 +613,7 @@ public class YouTubeParser extends VGetParser {
         try {
             qs = qs.trim();
             List<NameValuePair> list;
-            list = URLEncodedUtils.parse(new URI(null, null, null, -1, null, qs, null), UTF8);
+            list = URLEncodedUtils.parse(new URI(null, null, null, -1, null, qs, null), WGet.UTF8);
             HashMap<String, String> map = new HashMap<String, String>();
             for (NameValuePair p : list) {
                 map.put(p.getName(), p.getValue());
@@ -625,7 +624,7 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractHtmlInfo(List<VideoDownload> sNextVideoURL, YouTubeInfo info, String html, AtomicBoolean stop,
+    public void extractHtmlInfo(List<VideoDownload> sNextVideoURL, YouTubeInfo info, String html, AtomicBoolean stop,
             Runnable notify) throws Exception {
         {
             Pattern age = Pattern.compile("(verify_age)");
@@ -688,7 +687,7 @@ public class YouTubeParser extends VGetParser {
 
                             url = "https" + url + "?" + sparams;
 
-                            url = URLDecoder.decode(url, UTF8);
+                            url = URLDecoder.decode(url, WGet.UTF8);
 
                             filter(sNextVideoURL, itag, new URL(url));
                         }
@@ -735,7 +734,7 @@ public class YouTubeParser extends VGetParser {
 
                             url = "https" + url + "?" + sparams;
 
-                            url = URLDecoder.decode(url, UTF8);
+                            url = URLDecoder.decode(url, WGet.UTF8);
 
                             filter(sNextVideoURL, itag, new URL(url));
                         }
@@ -757,14 +756,14 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
-    void extractUrlEncodedVideos(List<VideoDownload> sNextVideoURL, String sline, YouTubeInfo info, AtomicBoolean stop,
-            Runnable notify) throws Exception {
+    public void extractUrlEncodedVideos(List<VideoDownload> sNextVideoURL, String sline, YouTubeInfo info,
+            AtomicBoolean stop, Runnable notify) throws Exception {
         String[] urlStrings = sline.split("url=");
 
         for (String urlString : urlStrings) {
             urlString = StringEscapeUtils.unescapeJava(urlString);
 
-            String urlFull = URLDecoder.decode(urlString, UTF8);
+            String urlFull = URLDecoder.decode(urlString, WGet.UTF8);
 
             // universal request
             {
@@ -774,7 +773,7 @@ public class YouTubeParser extends VGetParser {
                     Matcher linkMatch = link.matcher(urlString);
                     if (linkMatch.find()) {
                         url = linkMatch.group(1);
-                        url = URLDecoder.decode(url, UTF8);
+                        url = URLDecoder.decode(url, WGet.UTF8);
                     }
                 }
 

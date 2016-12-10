@@ -24,6 +24,7 @@ public class VideoInfo {
     private States state;
     private Throwable exception;
     private int delay;
+    private int retry;
 
     /**
      * 
@@ -102,8 +103,13 @@ public class VideoInfo {
         return delay;
     }
 
-    synchronized public void setRetrying(int delay, Throwable e) {
+    synchronized public int getRetry() {
+        return retry;
+    }
+
+    synchronized public void setRetrying(int r, int delay, Throwable e) {
         this.delay = delay;
+        this.retry = r;
         this.exception = e;
         this.state = States.RETRYING;
     }

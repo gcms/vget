@@ -14,13 +14,13 @@ import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 
 public class YouTubeQParser extends YouTubeParser {
-
     YoutubeQuality q;
 
     public YouTubeQParser(YoutubeQuality q) {
         this.q = q;
     }
 
+    @Override
     public List<VideoFileInfo> extract(final VideoInfo vinfo, final AtomicBoolean stop, final Runnable notify) {
         List<VideoDownload> sNextVideoURL = extractLinks((YouTubeInfo) vinfo, stop, notify);
 
@@ -60,5 +60,4 @@ public class YouTubeQParser extends YouTubeParser {
 
         throw new DownloadError("no video user quality found");
     }
-
 }

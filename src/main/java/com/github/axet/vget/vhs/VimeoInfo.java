@@ -5,7 +5,6 @@ import java.net.URL;
 import com.github.axet.vget.info.VideoInfo;
 
 public class VimeoInfo extends VideoInfo {
-
     // keep it in order hi->lo
     public enum VimeoQuality {
         pHi, pLow
@@ -24,5 +23,4 @@ public class VimeoInfo extends VideoInfo {
     public void setVideoQuality(VimeoQuality vq) {
         this.vq = vq;
     }
-
 }

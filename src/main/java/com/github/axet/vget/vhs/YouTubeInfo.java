@@ -6,7 +6,6 @@ import java.net.URL;
 import com.github.axet.vget.info.VideoInfo;
 
 public class YouTubeInfo extends VideoInfo {
-
     // keep it in order hi->lo
     public enum YoutubeQuality {
         p3072, p2304, p2160, p1440, p1080, p720, p520, p480, p360, p270, p240, p224, p144
@@ -122,5 +121,4 @@ public class YouTubeInfo extends VideoInfo {
     public void setPlayerURI(URI playerURI) {
         this.playerURI = playerURI;
     }
-
 }
