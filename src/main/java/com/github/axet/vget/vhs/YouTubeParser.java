@@ -377,10 +377,16 @@ public class YouTubeParser extends VGetParser {
     /**
      * do not allow to download age restricted videos
      * 
+     * @param sNextVideoURL
+     *            url list to download
      * @param info
+     *            download info
      * @param stop
+     *            stop flag
      * @param notify
+     *            notify object
      * @throws Exception
+     *             download error
      */
     public void streamCapture(List<VideoDownload> sNextVideoURL, final YouTubeInfo info, final AtomicBoolean stop,
             final Runnable notify) throws Exception {
@@ -411,9 +417,10 @@ public class YouTubeParser extends VGetParser {
     /**
      * Add resolution video for specific youtube link.
      * 
+     * @param sNextVideoURL
+     *            download urls
      * @param url
      *            download source url
-     * @throws MalformedURLException
      */
     public void filter(List<VideoDownload> sNextVideoURL, String itag, URL url) {
         Integer i = Integer.decode(itag);

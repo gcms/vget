@@ -82,6 +82,7 @@ public class VGet {
      * sources.
      * 
      * @param file
+     *            target file
      */
     public void setTarget(File file) {
         this.targetForce = file;
