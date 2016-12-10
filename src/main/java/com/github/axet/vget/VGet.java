@@ -600,9 +600,8 @@ public class VGet {
                                         // we need to handle this task error to l.waitUntilTermination()
                                         main.interrupt();
                                     } catch (RuntimeException e) {
-                                        // in case if download stopped by fatal error
-                                        main.interrupt();
                                         dinfo.setState(com.github.axet.wget.info.URLInfo.States.ERROR, e);
+                                        main.interrupt();
                                     }
                                 }
                             });
