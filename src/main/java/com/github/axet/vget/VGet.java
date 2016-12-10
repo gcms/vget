@@ -176,6 +176,9 @@ public class VGet {
 
         while (!retracted) {
             retry++; // first retry
+            if (!RetryWrap.retry(retry)) {
+                throw new DownloadError(e);
+            }
             for (int i = RetryWrap.RETRY_DELAY; i >= 0; i--) {
                 if (stop.get())
                     throw new DownloadInterruptedError("stop");
