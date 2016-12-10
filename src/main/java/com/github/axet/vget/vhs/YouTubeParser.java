@@ -598,6 +598,9 @@ public class YouTubeParser extends VGetParser {
         String icon = map.get("thumbnail_url");
         icon = URLDecoder.decode(icon, WGet.UTF8);
         info.setIcon(new URL(icon));
+        
+        if (info.getTitle() == null)
+            throw new DownloadError("Empty title");
     }
 
     public void extractIcon(VideoInfo info, String html) {
@@ -761,6 +764,8 @@ public class YouTubeParser extends VGetParser {
                 info.setTitle(name);
             }
         }
+        if (info.getTitle() == null)
+            throw new DownloadError("Empty title");
     }
 
     public void extractUrlEncodedVideos(List<VideoDownload> sNextVideoURL, String sline, YouTubeInfo info,
@@ -816,7 +821,6 @@ public class YouTubeParser extends VGetParser {
                     Matcher linkMatch = link.matcher(urlFull);
                     if (linkMatch.find()) {
                         sig = linkMatch.group(1);
-
                         if (info.getPlayerURI() == null) {
                             DecryptSignature ss = new DecryptSignature(sig);
                             sig = ss.decrypt();
@@ -830,7 +834,6 @@ public class YouTubeParser extends VGetParser {
                 if (url != null && itag != null && sig != null) {
                     try {
                         url += "&signature=" + sig;
-
                         filter(sNextVideoURL, itag, new URL(url));
                         continue;
                     } catch (MalformedURLException e) {

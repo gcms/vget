@@ -7,6 +7,8 @@ import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.ProxyInfo;
 
 public class VideoFileInfo extends DownloadInfo {
+    private static final long serialVersionUID = -6921646534817186218L;
+
     public File targetFile;
 
     public VideoFileInfo(URL source) {
