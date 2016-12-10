@@ -11,7 +11,7 @@ public class YouTubeMPGParser extends YouTubeParser {
     public YouTubeMPGParser() {
     }
 
-    void filter(List<VideoDownload> sNextVideoURL, String itag, URL url) {
+    public void filter(List<VideoDownload> sNextVideoURL, String itag, URL url) {
         Integer i = Integer.decode(itag);
         StreamInfo vd = itagMap.get(i);
 

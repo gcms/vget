@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.github.axet.vget.ex.DownloadFatal;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
 import com.github.axet.vget.info.VideoInfo;
@@ -43,7 +44,6 @@ public class AppManagedDownload {
         @Override
         public void run() {
             List<VideoFileInfo> dinfoList = videoinfo.getInfo();
-
             // notify app or save download state
             // you can extract information from DownloadInfo info;
             switch (videoinfo.getState()) {
@@ -68,7 +68,6 @@ public class AppManagedDownload {
                 break;
             case ERROR:
                 System.out.println(videoinfo.getState() + " " + videoinfo.getDelay());
-
                 if (dinfoList != null) {
                     for (DownloadInfo dinfo : dinfoList) {
                         System.out.println("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getException() + " delay:"
@@ -77,12 +76,11 @@ public class AppManagedDownload {
                 }
                 break;
             case RETRYING:
-                System.out.println(videoinfo.getState() + " " + videoinfo.getDelay());
-
+                System.out.println(videoinfo.getState() + " r:" + videoinfo.getRetry() + " d:" + videoinfo.getDelay());
                 if (dinfoList != null) {
                     for (DownloadInfo dinfo : dinfoList) {
                         System.out.println("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getState() + " "
-                                + dinfo.getException() + " delay:" + dinfo.getDelay());
+                                + dinfo.getException() + " r:" + dinfo.getRetry() + " d:" + dinfo.getDelay());
                     }
                 }
                 break;
