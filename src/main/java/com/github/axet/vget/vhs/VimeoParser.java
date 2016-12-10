@@ -22,6 +22,7 @@ import com.github.axet.vget.vhs.VimeoInfo.VimeoQuality;
 import com.github.axet.wget.WGet;
 import com.github.axet.wget.WGet.HtmlLoader;
 import com.github.axet.wget.info.ex.DownloadError;
+import com.github.axet.wget.info.ex.DownloadRetry;
 import com.google.gson.Gson;
 
 public class VimeoParser extends VGetParser {
@@ -184,6 +185,9 @@ public class VimeoParser extends VGetParser {
             VimeoData data = new Gson().fromJson(htmlConfig, VimeoData.class);
 
             String icon = data.video.thumbs.values().iterator().next();
+
+            if (data.video.title == null)
+                throw new DownloadError("bad title");
 
             info.setTitle(data.video.title);
 
