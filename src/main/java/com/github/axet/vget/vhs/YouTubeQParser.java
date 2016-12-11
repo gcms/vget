@@ -9,7 +9,6 @@ import com.github.axet.vget.info.VideoFileInfo;
 import com.github.axet.vget.info.VideoInfo;
 import com.github.axet.vget.vhs.YouTubeInfo.StreamCombined;
 import com.github.axet.vget.vhs.YouTubeInfo.YoutubeQuality;
-import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 

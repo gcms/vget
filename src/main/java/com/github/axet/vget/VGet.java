@@ -638,7 +638,7 @@ public class VGet {
                         // do we have any error?
                         for (final VideoFileInfo dinfo : dinfoList) {
                             if (dinfo.getException() != null) {
-                                throw new DownloadFatal(dinfoList); // yes some kind of fatal error on one or more files
+                                throw new DownloadFatal(e, dinfoList); // yes some kind of fatal error on one or more files
                             }
                         }
                         // nope, download was interrupted manually

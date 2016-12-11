@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.github.axet.vget.ex.DownloadFatal;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
 import com.github.axet.vget.info.VideoInfo;
@@ -62,26 +61,29 @@ public class AppManagedDownload {
                 for (VideoFileInfo d : videoinfo.getInfo()) {
                     SpeedInfo speedInfo = getSpeedInfo(d);
                     speedInfo.end(d.getCount());
-                    System.out.println(String.format("file:%d - %s (%s)", dinfoList.indexOf(d), d.targetFile,
+                    System.out.print(String.format("file:%d - %s (%s); ", dinfoList.indexOf(d), d.targetFile,
                             formatSpeed(speedInfo.getAverageSpeed())));
                 }
+                System.out.println();
                 break;
             case ERROR:
                 System.out.println(videoinfo.getState() + " " + videoinfo.getDelay());
                 if (dinfoList != null) {
                     for (DownloadInfo dinfo : dinfoList) {
-                        System.out.println("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getException() + " delay:"
-                                + dinfo.getDelay());
+                        System.out.print("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getException() + " delay:"
+                                + dinfo.getDelay() + "; ");
                     }
+                    System.out.println();
                 }
                 break;
             case RETRYING:
                 System.out.println(videoinfo.getState() + " r:" + videoinfo.getRetry() + " d:" + videoinfo.getDelay());
                 if (dinfoList != null) {
                     for (DownloadInfo dinfo : dinfoList) {
-                        System.out.println("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getState() + " "
-                                + dinfo.getException() + " r:" + dinfo.getRetry() + " d:" + dinfo.getDelay());
+                        System.out.print("file:" + dinfoList.indexOf(dinfo) + " - " + dinfo.getState() + " "
+                                + dinfo.getException() + " r:" + dinfo.getRetry() + " d:" + dinfo.getDelay() + "; ");
                     }
+                    System.out.println();
                 }
                 break;
             case DOWNLOADING:
@@ -105,10 +107,11 @@ public class AppManagedDownload {
                                 }
                             }
                         }
-                        System.out.println(String.format("file:%d - %s %.2f %s (%s)", dinfoList.indexOf(dinfo),
+                        System.out.print(String.format("file:%d - %s %.2f %s (%s); ", dinfoList.indexOf(dinfo),
                                 videoinfo.getState(), dinfo.getCount() / (float) dinfo.getLength(), parts,
                                 formatSpeed(speedInfo.getCurrentSpeed())));
                     }
+                    System.out.println();
                 }
                 break;
             default:

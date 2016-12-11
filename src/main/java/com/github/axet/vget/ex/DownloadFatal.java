@@ -24,14 +24,16 @@ public class DownloadFatal extends DownloadError {
         super(str);
     }
 
-    public DownloadFatal(VideoFileInfo v) {
+    public DownloadFatal(Throwable e, VideoFileInfo v) {
+        super(e);
         this.list.add(v);
     }
 
-    public DownloadFatal(List<VideoFileInfo> list) {
+    public DownloadFatal(Throwable e, List<VideoFileInfo> list) {
+        super(e);
         this.list.addAll(list);
     }
- 
+
     @Override
     public void printStackTrace(PrintStream s) {
         for (VideoFileInfo i : list) {
@@ -41,7 +43,7 @@ public class DownloadFatal extends DownloadError {
         }
         super.printStackTrace(s);
     }
-    
+
     @Override
     public void printStackTrace(PrintWriter s) {
         for (VideoFileInfo i : list) {
@@ -51,4 +53,4 @@ public class DownloadFatal extends DownloadError {
         }
         super.printStackTrace(s);
     }
- }
+}

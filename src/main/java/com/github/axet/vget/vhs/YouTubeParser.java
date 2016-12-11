@@ -1,8 +1,8 @@
 package com.github.axet.vget.vhs;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -24,8 +24,6 @@ import javax.script.ScriptEngineManager;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
@@ -586,6 +584,8 @@ public class YouTubeParser extends VGetParser {
         }
 
         info.setTitle(URLDecoder.decode(map.get("title"), WGet.UTF8));
+        if (info.getTitle() == null)
+            throw new DownloadError("Empty title");
 
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), UTF8);
         // String[] fmts = fmt_list.split(",");
@@ -598,9 +598,6 @@ public class YouTubeParser extends VGetParser {
         String icon = map.get("thumbnail_url");
         icon = URLDecoder.decode(icon, WGet.UTF8);
         info.setIcon(new URL(icon));
-        
-        if (info.getTitle() == null)
-            throw new DownloadError("Empty title");
     }
 
     public void extractIcon(VideoInfo info, String html) {
@@ -621,15 +618,16 @@ public class YouTubeParser extends VGetParser {
 
     public static Map<String, String> getQueryMap(String qs) {
         try {
-            qs = qs.trim();
-            List<NameValuePair> list;
-            list = URLEncodedUtils.parse(new URI(null, null, null, -1, null, qs, null), WGet.UTF8);
             HashMap<String, String> map = new HashMap<String, String>();
-            for (NameValuePair p : list) {
-                map.put(p.getName(), p.getValue());
+            qs = qs.trim();
+            String[] pairs = qs.split("&");
+            for (String pair : pairs) {
+                int idx = pair.indexOf("=");
+                map.put(URLDecoder.decode(pair.substring(0, idx), WGet.UTF8),
+                        URLDecoder.decode(pair.substring(idx + 1), WGet.UTF8));
             }
             return map;
-        } catch (URISyntaxException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(qs, e);
         }
     }
