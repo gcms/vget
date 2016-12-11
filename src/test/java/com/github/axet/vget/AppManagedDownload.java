@@ -108,7 +108,7 @@ public class AppManagedDownload {
                             }
                         }
                         System.out.print(String.format("file:%d - %s %.2f %s (%s); ", dinfoList.indexOf(dinfo),
-                                videoinfo.getState(), dinfo.getCount() / (float) dinfo.getLength(), parts,
+                                dinfo.getState(), dinfo.getCount() / (float) dinfo.getLength(), parts,
                                 formatSpeed(speedInfo.getCurrentSpeed())));
                     }
                     System.out.println();
