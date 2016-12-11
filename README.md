@@ -274,13 +274,13 @@ public class OptionsList {
 <dependency>
   <groupId>com.github.axet</groupId>
   <artifactId>vget</artifactId>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
 </dependency>
 ```
 ## Android Studio
 
 ```gradle
-    compile ('com.github.axet:vget:1.2.3') {
+    compile ('com.github.axet:vget:1.2.4') {
         exclude group: 'com.thoughtworks.xstream', module: 'xstream'
     }
     compile 'com.thoughtworks.xstream:xstream:1.3.1'
