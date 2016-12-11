@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.axet.threads.LimitThreadPool;
+import com.github.axet.vget.ex.DownloadEmptyTitle;
 import com.github.axet.vget.ex.DownloadFatal;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
@@ -417,6 +418,8 @@ public class VGet {
                     }
                     return;
                 } catch (DownloadRetry e) {
+                    retry(user, stop, notify, e);
+                }catch(DownloadEmptyTitle e) {
                     retry(user, stop, notify, e);
                 } catch (DownloadMultipartError e) {
                     checkFileNotFound(e);

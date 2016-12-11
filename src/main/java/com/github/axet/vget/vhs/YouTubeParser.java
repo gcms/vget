@@ -25,6 +25,7 @@ import javax.script.ScriptEngineManager;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.github.axet.vget.ex.DownloadEmptyTitle;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
 import com.github.axet.vget.info.VideoInfo;
@@ -360,7 +361,7 @@ public class YouTubeParser extends VGetParser {
             } catch (DownloadError e) {
                 try {
                     extractEmbedded(sNextVideoURL, info, stop, notify);
-                } catch (EmbeddingDisabled ee) {
+                } catch (EmbeddingDisabled ignore) {
                     throw e;
                 }
             }
@@ -584,8 +585,6 @@ public class YouTubeParser extends VGetParser {
         }
 
         info.setTitle(URLDecoder.decode(map.get("title"), WGet.UTF8));
-        if (info.getTitle() == null)
-            throw new DownloadError("Empty title");
 
         // String fmt_list = URLDecoder.decode(map.get("fmt_list"), UTF8);
         // String[] fmts = fmt_list.split(",");
@@ -763,7 +762,7 @@ public class YouTubeParser extends VGetParser {
             }
         }
         if (info.getTitle() == null)
-            throw new DownloadError("Empty title");
+            throw new DownloadEmptyTitle("Empty title"); // some times youtube return strange html, cause this error
     }
 
     public void extractUrlEncodedVideos(List<VideoDownload> sNextVideoURL, String sline, YouTubeInfo info,
