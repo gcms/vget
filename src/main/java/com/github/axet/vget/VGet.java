@@ -565,6 +565,8 @@ public class VGet {
                             // range download? try to resume download from last position
                             if (dinfo.targetFile.exists() && dinfo.targetFile.length() != dinfo.getCount()) {
                                 // all files have set targetFile, so targetNull == empty
+                                if (targetDir == null)
+                                    targetDir = dinfo.targetFile.getParentFile();
                                 dinfo.targetFile = null;
                                 AtomicBoolean conflict = new AtomicBoolean(false);
                                 targetFile(dinfo, getExt(dinfo), conflict);
