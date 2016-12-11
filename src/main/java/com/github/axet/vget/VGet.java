@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.axet.threads.LimitThreadPool;
+import com.github.axet.vget.ex.DownloadEmptyTitle;
 import com.github.axet.vget.ex.DownloadFatal;
 import com.github.axet.vget.info.VGetParser;
 import com.github.axet.vget.info.VideoFileInfo;
@@ -418,6 +419,8 @@ public class VGet {
                     return;
                 } catch (DownloadRetry e) {
                     retry(user, stop, notify, e);
+                } catch (DownloadEmptyTitle e) {
+                    retry(user, stop, notify, e);
                 } catch (DownloadMultipartError e) {
                     checkFileNotFound(e);
                     checkRetry(e);
@@ -559,10 +562,19 @@ public class VGet {
                             // multi part? overwrite.
                             directV = new DirectMultipart(dinfo, dinfo.targetFile);
                         } else if (dinfo.getRange()) {
-                            // range download? try to resume download from last
-                            // position
-                            if (dinfo.targetFile.exists() && dinfo.targetFile.length() != dinfo.getCount())
+                            // range download? try to resume download from last position
+                            if (dinfo.targetFile.exists() && dinfo.targetFile.length() != dinfo.getCount()) {
+                                // all files have set targetFile, so targetNull == empty
+                                if (targetDir == null)
+                                    targetDir = dinfo.targetFile.getParentFile();
                                 dinfo.targetFile = null;
+                                AtomicBoolean conflict = new AtomicBoolean(false);
+                                targetFile(dinfo, getExt(dinfo), conflict);
+                                if (conflict.get()) {
+                                    dinfo.targetFile = null;
+                                    targetFile(dinfo, getContentExt(dinfo), conflict);
+                                }
+                            }
                             directV = new DirectRange(dinfo, dinfo.targetFile);
                         } else {
                             // single download? overwrite file
@@ -638,7 +650,8 @@ public class VGet {
                         // do we have any error?
                         for (final VideoFileInfo dinfo : dinfoList) {
                             if (dinfo.getException() != null) {
-                                throw new DownloadFatal(dinfoList); // yes some kind of fatal error on one or more files
+                                // yes some kind of fatal error on one or more files
+                                throw new DownloadFatal(e, dinfoList);
                             }
                         }
                         // nope, download was interrupted manually

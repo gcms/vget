@@ -4,7 +4,7 @@
   <groupId>com.github.axet</groupId>
   <artifactId>vget</artifactId>
   <packaging>jar</packaging>
-  <version>1.2.3</version>
+  <version>1.2.4</version>
   <name>vget</name>
   <description>vget java video download library</description>
   <url>https://github.com/axet/vget</url>
@@ -47,11 +47,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5.2</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.5</version>
@@ -59,7 +54,7 @@
     <dependency>
       <groupId>com.github.axet</groupId>
       <artifactId>wget</artifactId>
-      <version>1.4.2</version>
+      <version>1.4.3</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>

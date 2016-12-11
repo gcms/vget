@@ -4,8 +4,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.axet.wget.info.DownloadInfo;
-
 public class VideoInfo {
 
     public enum States {
