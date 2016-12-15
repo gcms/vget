@@ -857,7 +857,7 @@ public class YouTubeParser extends VGetParser {
 
         List<VideoDownload> audios = new ArrayList<VideoDownload>();
 
-        for (int i = videos.size() - 1; i > 0; i--) {
+        for (int i = videos.size() - 1; i >= 0; i--) {
             if (videos.get(i).stream == null) {
                 videos.remove(i);
             } else if ((videos.get(i).stream instanceof StreamAudio)) {
@@ -882,7 +882,7 @@ public class YouTubeParser extends VGetParser {
 
             if (v.stream instanceof StreamVideo) {
                 if (audios.size() > 0) {
-                    VideoFileInfo info2 = new VideoFileInfo(audios.get(0).url);
+                    VideoFileInfo info2 = new VideoFileInfo(audios.get(0).url); // take first (highest quality)
                     vinfo.setInfo(Arrays.asList(info, info2));
                 } else {
                     // no audio stream?
@@ -891,6 +891,14 @@ public class YouTubeParser extends VGetParser {
             }
 
             vinfo.setSource(v.url);
+            return vinfo.getInfo();
+        }
+
+        for (int i = 0; i < audios.size();) { // only audio mode?
+            VideoFileInfo info = new VideoFileInfo(audios.get(i).url);
+            vinfo.setInfo(Arrays.asList(info));
+
+            vinfo.setSource(info.getSource());
             return vinfo.getInfo();
         }
 
