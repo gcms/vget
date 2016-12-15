@@ -890,6 +890,9 @@ public class YouTubeParser extends VGetParser {
                 }
             }
 
+            if (vinfo.getInfo() == null) // unknown stream at first?
+                continue;
+
             vinfo.setSource(v.url);
             return vinfo.getInfo();
         }
