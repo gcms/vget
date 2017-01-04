@@ -277,10 +277,3 @@ public class OptionsList {
   <version>1.2.4</version>
 </dependency>
 ```
-## Android Studio
-
-```gradle
-    compile ('com.github.axet:vget:1.2.4') {
-        exclude group: 'com.thoughtworks.xstream', module: 'xstream'
-    }
-```
