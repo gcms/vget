@@ -200,6 +200,9 @@ public class YouTubeParser extends VGetParser {
             return url;
         }
 
+        // a.set("signature",$m(c))
+        private static final Pattern DECODE_FUNCTION = Pattern.compile("\\.set\\(\"signature\",([\\w\\d\\$_]+)\\(.+\\)\\)");
+
         /**
          * Determines the main decode function name. Unfortunately the name of the decode-funtion might change from
          * version to version, but the part of the code that makes use of this function usually doesn't change. So let's
@@ -210,8 +213,8 @@ public class YouTubeParser extends VGetParser {
          * @return name of decode-function or null
          */
         public String getMainDecodeFunctionName(String playerJS) {
-            Pattern decodeFunctionName = Pattern.compile("\\.sig\\|\\|([a-zA-Z0-9$]+)\\(");
-            Matcher decodeFunctionNameMatch = decodeFunctionName.matcher(playerJS);
+//            Pattern decodeFunctionName = Pattern.compile("\\.sig\\|\\|([a-zA-Z0-9$]+)\\(");
+            Matcher decodeFunctionNameMatch = DECODE_FUNCTION.matcher(playerJS);
             if (decodeFunctionNameMatch.find()) {
                 return decodeFunctionNameMatch.group(1);
             }
@@ -233,7 +236,7 @@ public class YouTubeParser extends VGetParser {
             Pattern decodeFunction = Pattern
                     // this will probably change from version to version so
                     // changes have to be done here
-                    .compile(String.format("(%s=function\\([a-zA-Z0-9$]+\\)\\{.*?\\})[,;]", functionName),
+                    .compile(String.format("(%s=function\\([a-zA-Z0-9$]+\\)\\{.*?\\})[,;]", Pattern.quote(functionName)),
                             Pattern.DOTALL);
             Matcher decodeFunctionMatch = decodeFunction.matcher(playerJS);
             if (decodeFunctionMatch.find()) {
@@ -250,7 +253,7 @@ public class YouTubeParser extends VGetParser {
                 final String decodeFuncHelperName = decodeFunctionHelperNameMatch.group(1);
 
                 Pattern decodeFunctionHelper = Pattern.compile(
-                        String.format("(var %s=\\{[a-zA-Z0-9]*:function\\(.*?\\};)", decodeFuncHelperName),
+                        String.format("(var %s=\\{[a-zA-Z0-9]*:function\\(.*?\\};)", Pattern.quote(decodeFuncHelperName)),
                         Pattern.DOTALL);
                 Matcher decodeFunctionHelperMatch = decodeFunctionHelper.matcher(playerJS);
                 if (decodeFunctionHelperMatch.find()) {
@@ -631,6 +634,25 @@ public class YouTubeParser extends VGetParser {
         }
     }
 
+    private static final Pattern PLAYER_URL = Pattern.compile("src=\"([^\"]*player-[^\"]*\\/[^\"]*\\.js)\"");
+    public String extractHtmlInfoPlayerURI(String html) {
+        Matcher playerVersionMatch = PLAYER_URL.matcher(html);
+        if (playerVersionMatch.find()) {
+            String url = playerVersionMatch.group(1);
+
+            if (url.startsWith("//")) {
+                url = "https:" + url;
+            } else {
+                assert url.startsWith("/");
+                url = "https://www.youtube.com" + url;
+            }
+
+            return url;
+        }
+
+        return null;
+    }
+
     public void extractHtmlInfo(List<VideoDownload> sNextVideoURL, YouTubeInfo info, String html, AtomicBoolean stop,
             Runnable notify) throws Exception {
         {
@@ -649,10 +671,9 @@ public class YouTubeParser extends VGetParser {
 
         // grab html5 player url
         {
-            Pattern playerURL = Pattern.compile("(//.*?/player-[\\w\\d\\-]+\\/.*\\.js)");
-            Matcher playerVersionMatch = playerURL.matcher(html);
-            if (playerVersionMatch.find()) {
-                info.setPlayerURI(new URI("https:" + playerVersionMatch.group(1)));
+            String playerURL = extractHtmlInfoPlayerURI(html);
+            if (playerURL != null) {
+                info.setPlayerURI(new URI(playerURL));
             }
         }
 
