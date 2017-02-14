@@ -33,22 +33,22 @@ public class YouTubeTest extends TestCase {
         assertTrue("All files are empty", false);
     }
 
-    public void testDownload() throws Exception {
+    public void testDownload() throws IOException {
         check("https://www.youtube.com/watch?v=kRNmQmNSD90");
-        check("https://www.youtube.com/watch?v=vPHZlUcPx6s");
-        check("https://www.youtube.com/watch?v=USm8i0DG1Sk");
-        check("https://www.youtube.com/watch?v=NqmjBSurfWY");
-        check("https://www.youtube.com/watch?v=kj8DQ_mT7B8");
-        check("https://www.youtube.com/watch?v=YQHsXMglC9A");
-        check("https://www.youtube.com/watch?v=Nj6PFaDmp6c");
-        check("https://www.youtube.com/watch?v=ykQQ7LhtUTM");
-        check("https://www.youtube.com/watch?v=KoUT0ZfPiFk");
-        check("https://www.youtube.com/watch?v=n3ofDzjO0AU");
-        check("https://www.youtube.com/watch?v=NOcteldxsgM");
-        check("https://www.youtube.com/watch?v=Nj6PFaDmp6c");
+//        check("https://www.youtube.com/watch?v=vPHZlUcPx6s");
+//        check("https://www.youtube.com/watch?v=USm8i0DG1Sk");
+//        check("https://www.youtube.com/watch?v=NqmjBSurfWY");
+//        check("https://www.youtube.com/watch?v=kj8DQ_mT7B8");
+//        check("https://www.youtube.com/watch?v=YQHsXMglC9A");
+//        check("https://www.youtube.com/watch?v=Nj6PFaDmp6c");
+//        check("https://www.youtube.com/watch?v=ykQQ7LhtUTM");
+//        check("https://www.youtube.com/watch?v=KoUT0ZfPiFk");
+//        check("https://www.youtube.com/watch?v=n3ofDzjO0AU");
+//        check("https://www.youtube.com/watch?v=NOcteldxsgM");
+//        check("https://www.youtube.com/watch?v=Nj6PFaDmp6c");
     }
 
-    void check(String url) throws Exception {
+    void check(String url) throws IOException {
         AppManagedDownload.main(new String[] { url, target.getCanonicalPath() });
     }
 
