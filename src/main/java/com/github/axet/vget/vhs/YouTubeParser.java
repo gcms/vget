@@ -236,7 +236,7 @@ public class YouTubeParser extends VGetParser {
             Pattern decodeFunction = Pattern
                     // this will probably change from version to version so
                     // changes have to be done here
-                    .compile(String.format("(%s=function\\([a-zA-Z0-9$]+\\)\\{.*?\\})[,;]", Pattern.quote(functionName)),
+                    .compile(String.format("(%s=function\\([\\w\\d\\$_]+\\)\\{.*?\\})[,;]", Pattern.quote(functionName)),
                             Pattern.DOTALL);
             Matcher decodeFunctionMatch = decodeFunction.matcher(playerJS);
             if (decodeFunctionMatch.find()) {
@@ -247,7 +247,7 @@ public class YouTubeParser extends VGetParser {
 
             // determine the name of the helper function which is used by the
             // main decode function
-            Pattern decodeFunctionHelperName = Pattern.compile("\\);([a-zA-Z0-9]+)\\.");
+            Pattern decodeFunctionHelperName = Pattern.compile("\\);([\\w\\d\\$_]+)\\.");
             Matcher decodeFunctionHelperNameMatch = decodeFunctionHelperName.matcher(decodeScript.toString());
             if (decodeFunctionHelperNameMatch.find()) {
                 final String decodeFuncHelperName = decodeFunctionHelperNameMatch.group(1);
