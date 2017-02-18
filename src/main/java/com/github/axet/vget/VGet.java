@@ -490,7 +490,25 @@ public class VGet {
     }
 
     public void download(final AtomicBoolean stop, final Runnable notify) {
-        download(null, stop, notify);
+        while (!done(stop)) {
+            VGetParser user = parser(this.info.getWeb());
+            try {
+                download(null, stop, notify);
+            } catch (DownloadRetry e) {
+                retry(user, stop, notify, e);
+            } catch (DownloadMultipartError e) {
+                checkFileNotFound(e);
+                checkRetry(e);
+                retry(user, stop, notify, e);
+            } catch (DownloadIOCodeError e) {
+                if (retry(e))
+                    retry(user, stop, notify, e);
+                else
+                    throw e;
+            } catch (DownloadIOError e) {
+                retry(user, stop, notify, e);
+            }
+        }
     }
 
     public void download(VGetParser user, final AtomicBoolean stop, final Runnable notify) {
@@ -504,133 +522,12 @@ public class VGet {
                 try {
                     final List<VideoFileInfo> dinfoList = info.getInfo();
 
+                    setupTargetFiles(dinfoList);
+
                     final LimitThreadPool l = new LimitThreadPool(THREAD_COUNT);
 
-                    final Thread main = Thread.currentThread();
-
-                    // new targetFile() call
-                    {
-                        // update targetFile only if not been set on previous while(!done()) loops.
-                        List<VideoFileInfo> targetNull = new ArrayList<VideoFileInfo>();
-
-                        // safety checks. should it be 'vhs' dependent? does other services return other than
-                        // "video/audio"?
-                        for (final VideoFileInfo dinfo : dinfoList) {
-                            if (dinfo.targetFile == null)
-                                targetNull.add(dinfo);
-                            {
-                                String c = dinfo.getContentType();
-                                if (c == null)
-                                    c = "";
-                                boolean v = c.contains("video/");
-                                boolean a = c.contains("audio/");
-                                if (!v && !a) {
-                                    throw new DownloadRetry(
-                                            "unable to download video, bad content " + dinfo.getContentType());
-                                }
-                            }
-                        }
-
-                        // did we meet two similar extensions for audio/video content? conflict == true if so.
-                        // we can continue but one result file name would be like "SomeTitle (1).mp3"
-                        AtomicBoolean conflict = new AtomicBoolean(false);
-                        // 1) ".ext"
-                        for (final VideoFileInfo dinfo : targetNull) {
-                            dinfo.targetFile = null;
-                            targetFile(dinfo, getExt(dinfo), conflict);
-                        }
-                        // conflict means we have " (1).ext" download. try add ".content.ext" as extension
-                        // to make file names looks more pretty.
-                        if (conflict.get()) {
-                            conflict = new AtomicBoolean(false);
-                            // 2) ".content.ext"
-                            for (final VideoFileInfo dinfo : targetNull) {
-                                dinfo.targetFile = null;
-                                targetFile(dinfo, getContentExt(dinfo), conflict);
-                            }
-                        }
-                    }
-
                     for (final VideoFileInfo dinfo : dinfoList) {
-                        if (dinfo.targetFile == null) {
-                            throw new RuntimeException("bad target");
-                        }
-
-                        Direct directV;
-
-                        if (dinfo.multipart()) {
-                            // multi part? overwrite.
-                            directV = new DirectMultipart(dinfo, dinfo.targetFile);
-                        } else if (dinfo.getRange()) {
-                            // range download? try to resume download from last position
-                            if (dinfo.targetFile.exists() && dinfo.targetFile.length() != dinfo.getCount()) {
-                                // all files have set targetFile, so targetNull == empty
-                                if (targetDir == null)
-                                    targetDir = dinfo.targetFile.getParentFile();
-                                dinfo.targetFile = null;
-                                AtomicBoolean conflict = new AtomicBoolean(false);
-                                targetFile(dinfo, getExt(dinfo), conflict);
-                                if (conflict.get()) {
-                                    dinfo.targetFile = null;
-                                    targetFile(dinfo, getContentExt(dinfo), conflict);
-                                }
-                            }
-                            directV = new DirectRange(dinfo, dinfo.targetFile);
-                        } else {
-                            // single download? overwrite file
-                            directV = new DirectSingle(dinfo, dinfo.targetFile);
-                        }
-                        final Direct direct = directV;
-
-                        final Runnable r = new Runnable() {
-                            @Override
-                            public void run() {
-                                switch (dinfo.getState()) {
-                                case DOWNLOADING:
-                                    info.setState(States.DOWNLOADING);
-                                    notify.run();
-                                    break;
-                                case RETRYING:
-                                    info.setRetrying(dinfo.getRetry(), dinfo.getDelay(), dinfo.getException());
-                                    notify.run();
-                                    break;
-                                default:
-                                    // we can safely skip all statues.
-                                    // (extracting - already passed, STOP /
-                                    // ERROR / DONE i will catch up here
-                                }
-                            }
-                        };
-
-                        try {
-                            l.blockExecute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        direct.download(stop, r);
-                                    } catch (DownloadInterruptedError e) {
-                                        // we need to handle this task error to l.waitUntilTermination()
-                                        main.interrupt();
-                                    } catch (RuntimeException e) {
-                                        dinfo.setState(com.github.axet.wget.info.URLInfo.States.ERROR, e);
-                                        main.interrupt();
-                                    }
-                                }
-                            });
-                        } catch (InterruptedException e) {
-                            l.interrupt();
-                            // wait for childs to exit
-                            boolean clear = true;
-                            while (clear) {
-                                try {
-                                    l.join();
-                                    clear = false;
-                                } catch (InterruptedException ee) {
-                                    // we got interrupted twice from main.interrupt()
-                                }
-                            }
-                            throw new DownloadInterruptedError(e);
-                        }
+                        download(dinfo, stop, notify, l);
                     }
 
                     try {
@@ -686,6 +583,152 @@ public class VGet {
             notify.run();
             throw e;
         }
+    }
+
+    private void setupTargetFiles(List<VideoFileInfo> dinfoList) throws DownloadRetry {
+        // new targetFile() call
+        {
+            // update targetFile only if not been set on previous while(!done()) loops.
+            List<VideoFileInfo> targetNull = new ArrayList<VideoFileInfo>();
+
+            // safety checks. should it be 'vhs' dependent? does other services return other than
+            // "video/audio"?
+            for (final VideoFileInfo dinfo : dinfoList) {
+                if (dinfo.targetFile == null)
+                    targetNull.add(dinfo);
+                {
+                    String c = dinfo.getContentType();
+                    if (c == null)
+                        c = "";
+                    boolean v = c.contains("video/");
+                    boolean a = c.contains("audio/");
+                    if (!v && !a) {
+                        throw new DownloadRetry(
+                                "unable to download video, bad content " + dinfo.getContentType());
+                    }
+                }
+            }
+
+            // did we meet two similar extensions for audio/video content? conflict == true if so.
+            // we can continue but one result file name would be like "SomeTitle (1).mp3"
+            AtomicBoolean conflict = new AtomicBoolean(false);
+            // 1) ".ext"
+            for (final VideoFileInfo dinfo : targetNull) {
+                dinfo.targetFile = null;
+                targetFile(dinfo, getExt(dinfo), conflict);
+            }
+            // conflict means we have " (1).ext" download. try add ".content.ext" as extension
+            // to make file names looks more pretty.
+            if (conflict.get()) {
+                conflict = new AtomicBoolean(false);
+                // 2) ".content.ext"
+                for (final VideoFileInfo dinfo : targetNull) {
+                    dinfo.targetFile = null;
+                    targetFile(dinfo, getContentExt(dinfo), conflict);
+                }
+            }
+        }
+    }
+
+    public void download(VideoFileInfo fileInfo, File target, final AtomicBoolean stop, final Runnable notify) {
+        fileInfo.setTarget(target);
+        getDirect(fileInfo).download(stop, notify);
+    }
+
+    public void download(VideoFileInfo fileInfo, File target) {
+        download(fileInfo, target, new AtomicBoolean(false), new Runnable() {
+            @Override
+            public void run() {
+            }
+        });
+    }
+
+    public void download(final VideoFileInfo dinfo, final AtomicBoolean stop, final Runnable notify, LimitThreadPool l) {
+        final Thread main = Thread.currentThread();
+
+        if (dinfo.targetFile == null) {
+            throw new RuntimeException("bad target");
+        }
+
+        final Direct direct = getDirect(dinfo);
+
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                switch (dinfo.getState()) {
+                case DOWNLOADING:
+                    info.setState(States.DOWNLOADING);
+                    notify.run();
+                    break;
+                case RETRYING:
+                    info.setRetrying(dinfo.getRetry(), dinfo.getDelay(), dinfo.getException());
+                    notify.run();
+                    break;
+                default:
+                    // we can safely skip all statues.
+                    // (extracting - already passed, STOP /
+                    // ERROR / DONE i will catch up here
+                }
+            }
+        };
+
+        try {
+            l.blockExecute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        direct.download(stop, r);
+                    } catch (DownloadInterruptedError e) {
+                        // we need to handle this task error to l.waitUntilTermination()
+                        main.interrupt();
+                    } catch (RuntimeException e) {
+                        dinfo.setState(com.github.axet.wget.info.URLInfo.States.ERROR, e);
+                        main.interrupt();
+                    }
+                }
+            });
+        } catch (InterruptedException e) {
+            l.interrupt();
+            // wait for childs to exit
+            boolean clear = true;
+            while (clear) {
+                try {
+                    l.join();
+                    clear = false;
+                } catch (InterruptedException ee) {
+                    // we got interrupted twice from main.interrupt()
+                }
+            }
+            throw new DownloadInterruptedError(e);
+        }
+    }
+
+    private Direct getDirect(VideoFileInfo dinfo) {
+        Direct directV;
+
+        if (dinfo.multipart()) {
+            // multi part? overwrite.
+            directV = new DirectMultipart(dinfo, dinfo.targetFile);
+        } else if (dinfo.getRange()) {
+            // range download? try to resume download from last position
+            if (dinfo.targetFile.exists() && dinfo.targetFile.length() != dinfo.getCount()) {
+                // all files have set targetFile, so targetNull == empty
+                if (targetDir == null)
+                    targetDir = dinfo.targetFile.getParentFile();
+                dinfo.targetFile = null;
+                AtomicBoolean conflict = new AtomicBoolean(false);
+                targetFile(dinfo, getExt(dinfo), conflict);
+                if (conflict.get()) {
+                    dinfo.targetFile = null;
+                    targetFile(dinfo, getContentExt(dinfo), conflict);
+                }
+            }
+            directV = new DirectRange(dinfo, dinfo.targetFile);
+        } else {
+            // single download? overwrite file
+            directV = new DirectSingle(dinfo, dinfo.targetFile);
+        }
+        return directV;
     }
 
     public static VGetParser parser(URL web) {
